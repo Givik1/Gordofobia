@@ -2,7 +2,11 @@ const { getStore } = require("@netlify/blobs");
 
 exports.handler = async () => {
   try {
-    const store = getStore("peso-diario");
+    const store = getStore({
+      name: "peso-diario",
+      siteID: process.env.BLOBS_SITE_ID,
+      token: process.env.BLOBS_TOKEN,
+    });
     const entries = (await store.get("entries", { type: "json" })) || [];
 
     return {
@@ -14,7 +18,7 @@ exports.handler = async () => {
     return {
       statusCode: 500,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ error: "No se pudieron leer los registros.", debug: String(error && error.stack || error) }),
+      body: JSON.stringify({ error: "No se pudieron leer los registros." }),
     };
   }
 };

@@ -49,25 +49,37 @@ exports.handler = async (event) => {
   }
   const notaLimpia = typeof nota === "string" ? nota.trim().slice(0, 200) : "";
 
-  const store = getStore("peso-diario");
-  const entries = (await store.get("entries", { type: "json" })) || [];
+  try {
+    const store = getStore({
+      name: "peso-diario",
+      siteID: process.env.BLOBS_SITE_ID,
+      token: process.env.BLOBS_TOKEN,
+    });
+    const entries = (await store.get("entries", { type: "json" })) || [];
 
-  const index = entries.findIndex((e) => e.fecha === fecha && e.persona === persona);
-  const registro = { fecha, persona, peso: pesoNum, nota: notaLimpia };
+    const index = entries.findIndex((e) => e.fecha === fecha && e.persona === persona);
+    const registro = { fecha, persona, peso: pesoNum, nota: notaLimpia };
 
-  if (index >= 0) {
-    entries[index] = registro;
-  } else {
-    entries.push(registro);
+    if (index >= 0) {
+      entries[index] = registro;
+    } else {
+      entries.push(registro);
+    }
+
+    entries.sort((a, b) => a.fecha.localeCompare(b.fecha));
+
+    await store.setJSON("entries", entries);
+
+    return {
+      statusCode: 200,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(registro),
+    };
+  } catch (error) {
+    return {
+      statusCode: 500,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ error: "No se pudo guardar el registro." }),
+    };
   }
-
-  entries.sort((a, b) => a.fecha.localeCompare(b.fecha));
-
-  await store.setJSON("entries", entries);
-
-  return {
-    statusCode: 200,
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(registro),
-  };
 };
