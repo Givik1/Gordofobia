@@ -14,7 +14,7 @@ exports.handler = async () => {
     return {
       statusCode: 500,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ error: "No se pudieron leer los registros." }),
+      body: JSON.stringify({ error: "No se pudieron leer los registros.", debug: String(error && error.stack || error) }),
     };
   }
 };
