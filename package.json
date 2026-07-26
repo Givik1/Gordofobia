@@ -1,0 +1,9 @@
+{
+  "name": "peso-diario",
+  "version": "1.0.0",
+  "private": true,
+  "description": "App personal para registrar el peso diario de Cristobal y Teresa",
+  "dependencies": {
+    "@netlify/blobs": "^8.1.0"
+  }
+}

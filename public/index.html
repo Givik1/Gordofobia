@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="theme-color" content="#2563eb" />
+  <title>Peso diario</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="page">
+    <header class="header">
+      <h1>Peso diario</h1>
+    </header>
+
+    <main class="main">
+      <section class="card" aria-label="Selección de persona">
+        <div class="persona-selector" id="persona-selector">
+          <button type="button" class="persona-btn persona-btn--cristobal" id="btn-cristobal" data-persona="cristobal">
+            Cristóbal
+          </button>
+          <button type="button" class="persona-btn persona-btn--teresa" id="btn-teresa" data-persona="teresa">
+            Teresa
+          </button>
+        </div>
+      </section>
+
+      <section class="card">
+        <form id="form-registro" novalidate>
+          <div class="field">
+            <label for="input-fecha">Fecha</label>
+            <input type="date" id="input-fecha" name="fecha" required />
+          </div>
+
+          <div class="field">
+            <label for="input-peso">Peso (kg)</label>
+            <input
+              type="text"
+              id="input-peso"
+              name="peso"
+              inputmode="decimal"
+              placeholder="78,4"
+              autocomplete="off"
+              required
+            />
+          </div>
+
+          <div class="field">
+            <label for="input-nota">Nota <span class="opcional">(opcional)</span></label>
+            <input
+              type="text"
+              id="input-nota"
+              name="nota"
+              maxlength="60"
+              placeholder="p. ej. después de correr"
+              autocomplete="off"
+            />
+          </div>
+
+          <button type="submit" id="btn-guardar" class="btn-guardar" disabled>
+            Guardar
+          </button>
+
+          <p id="mensaje" class="mensaje" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+
+      <section class="card">
+        <h2 class="chart-title">Evolución</h2>
+        <div id="chart-container" class="chart-container">
+          <p class="chart-vacio" id="chart-vacio">Todavía no hay registros.</p>
+        </div>
+        <div class="legend" id="legend">
+          <span class="legend-item"><span class="legend-dot legend-dot--cristobal"></span>Cristóbal</span>
+          <span class="legend-item"><span class="legend-dot legend-dot--teresa"></span>Teresa</span>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
