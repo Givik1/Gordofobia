@@ -6,15 +6,7 @@ exports.handler = async (event) => {
     return {
       statusCode: 401,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        error: "PIN incorrecto.",
-        debug: {
-          envSet: Boolean(process.env.APP_PIN),
-          envLen: process.env.APP_PIN ? process.env.APP_PIN.length : 0,
-          receivedLen: pin ? pin.length : 0,
-          receivedType: typeof pin,
-        },
-      }),
+      body: JSON.stringify({ error: "PIN incorrecto." }),
     };
   }
 
