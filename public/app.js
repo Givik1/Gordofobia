@@ -4,6 +4,7 @@
   const GET_ENTRIES_URL = "/.netlify/functions/get-entries";
   const SAVE_ENTRY_URL = "/.netlify/functions/save-entry";
   const STORAGE_KEY = "peso-diario:persona";
+  const PIN_STORAGE_KEY = "peso-diario:pin";
   const PERSONAS = ["cristobal", "teresa"];
   const NOMBRES = { cristobal: "Cristóbal", teresa: "Teresa" };
 
@@ -22,6 +23,11 @@
     btnGuardar: document.getElementById("btn-guardar"),
     mensaje: document.getElementById("mensaje"),
     chartContainer: document.getElementById("chart-container"),
+    pinOverlay: document.getElementById("pin-overlay"),
+    formPin: document.getElementById("form-pin"),
+    inputPin: document.getElementById("input-pin"),
+    pinError: document.getElementById("pin-error"),
+    btnPin: document.querySelector("#form-pin .pin-btn"),
   };
 
   let mensajeTimeout = null;
@@ -108,19 +114,66 @@
     precargarFormulario();
   }
 
-  async function cargarRegistros() {
+  function pinHeaders() {
+    const pin = localStorage.getItem(PIN_STORAGE_KEY);
+    return pin ? { "X-App-Pin": pin } : {};
+  }
+
+  function mostrarPinOverlay(error) {
+    els.pinOverlay.classList.remove("hidden");
+    els.pinError.textContent = error || "";
+    els.inputPin.value = "";
+    els.inputPin.focus();
+  }
+
+  function ocultarPinOverlay() {
+    els.pinOverlay.classList.add("hidden");
+  }
+
+  async function intentarCargarEntradas() {
     try {
-      const res = await fetch(GET_ENTRIES_URL);
-      if (!res.ok) throw new Error("Respuesta no válida");
+      const res = await fetch(GET_ENTRIES_URL, { headers: pinHeaders() });
+      if (res.status === 401) {
+        return { ok: false, unauthorized: true };
+      }
+      if (!res.ok) {
+        return { ok: false, unauthorized: false };
+      }
       const data = await res.json();
       state.entries = Array.isArray(data) ? data : [];
+      return { ok: true };
+    } catch (err) {
+      return { ok: false, unauthorized: false };
+    }
+  }
+
+  async function autenticarYCargar() {
+    const resultado = await intentarCargarEntradas();
+    if (resultado.ok) {
+      ocultarPinOverlay();
       renderChart();
       precargarFormulario();
-    } catch (err) {
-      state.entries = [];
-      renderChart();
-      mostrarMensaje("No se pudieron cargar los datos del gráfico.", "error");
+      return true;
     }
+    state.entries = [];
+    localStorage.removeItem(PIN_STORAGE_KEY);
+    mostrarPinOverlay(resultado.unauthorized ? "PIN incorrecto." : "Error de conexión. Inténtalo de nuevo.");
+    return false;
+  }
+
+  async function handlePinSubmit(event) {
+    event.preventDefault();
+    const pin = els.inputPin.value.trim();
+    if (!pin) return;
+
+    localStorage.setItem(PIN_STORAGE_KEY, pin);
+    els.btnPin.disabled = true;
+    els.btnPin.textContent = "Comprobando…";
+
+    await autenticarYCargar();
+
+    els.btnPin.disabled = false;
+    els.btnPin.textContent = "Entrar";
   }
 
   async function handleSubmit(event) {
@@ -147,9 +200,14 @@
     try {
       const res = await fetch(SAVE_ENTRY_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...pinHeaders() },
         body: JSON.stringify({ fecha, persona: state.currentPersona, peso, nota }),
       });
+      if (res.status === 401) {
+        localStorage.removeItem(PIN_STORAGE_KEY);
+        mostrarPinOverlay("PIN incorrecto. Vuelve a introducirlo.");
+        return;
+      }
       if (!res.ok) {
         const errBody = await res.json().catch(() => ({}));
         throw new Error(errBody.error || "Error al guardar");
@@ -272,6 +330,7 @@
     els.btnTeresa.addEventListener("click", () => seleccionarPersona("teresa"));
     els.inputFecha.addEventListener("change", precargarFormulario);
     els.form.addEventListener("submit", handleSubmit);
+    els.formPin.addEventListener("submit", handlePinSubmit);
 
     const guardada = localStorage.getItem(STORAGE_KEY);
     if (PERSONAS.includes(guardada)) {
@@ -279,7 +338,13 @@
     }
     actualizarBotonPersona();
 
-    cargarRegistros();
+    const pinGuardado = localStorage.getItem(PIN_STORAGE_KEY);
+    if (!pinGuardado) {
+      mostrarPinOverlay();
+      return;
+    }
+
+    autenticarYCargar();
   }
 
   init();

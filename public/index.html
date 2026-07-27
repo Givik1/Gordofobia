@@ -8,6 +8,27 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <div class="pin-overlay" id="pin-overlay">
+    <div class="pin-card">
+      <h1 class="pin-title">Peso diario</h1>
+      <p class="pin-subtitle">Introduce el PIN para continuar</p>
+      <form id="form-pin" novalidate>
+        <input
+          type="password"
+          inputmode="numeric"
+          pattern="[0-9]*"
+          maxlength="8"
+          id="input-pin"
+          class="pin-input"
+          autocomplete="off"
+          placeholder="····"
+        />
+        <button type="submit" class="pin-btn">Entrar</button>
+        <p id="pin-error" class="pin-error" role="alert"></p>
+      </form>
+    </div>
+  </div>
+
   <div class="page">
     <header class="header">
       <h1>Peso diario</h1>

@@ -1,6 +1,15 @@
 const { getStore } = require("@netlify/blobs");
 
-exports.handler = async () => {
+exports.handler = async (event) => {
+  const pin = event.headers["x-app-pin"];
+  if (!process.env.APP_PIN || pin !== process.env.APP_PIN) {
+    return {
+      statusCode: 401,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ error: "PIN incorrecto." }),
+    };
+  }
+
   try {
     const store = getStore({
       name: "peso-diario",
